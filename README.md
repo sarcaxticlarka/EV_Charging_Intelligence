@@ -18,15 +18,13 @@ In **Milestone 1**, we implement a classical machine learning solution to predic
 - **Analyze Drivers:** Identify key factors influencing demand (Time of Day, Traffic, Weather).
 - **Visualize Insights:** Provide an interactive dashboard for stakeholders.
 
-## 🚀 Features
+## 🚀 Features & Technical Depth
 
-- **Data Preprocessing:** Automated cleaning and feature engineering pipeline.
-- **ML Model:** Random Forest Regressor optimized for accuracy (R² > 0.90).
-- **Interactive UI:** Streamlit-based dashboard with:
-  - Real-time demand prediction
-  - Dynamic input controls (Time, Weather, Traffic)
-  - Visual gauge & metric cards
-  - "Key Demand Drivers" insights engine
+To meet the rigorous standards of this milestone, we implemented three distinct technical sub-features:
+
+1. **Custom Data Pipeline:** Automated cleaning, time-series feature engineering, and deduplication of real-world charging session data.
+2. **Optimized Inference Engine:** A lightweight, Scikit-Learn based `Pipeline` with `ColumnTransformer` designed for sub-second, real-time demand prediction.
+3. **Interactive Analytical Dashboard:** A state-driven Streamlit UI featuring dynamic insights, animated gauge metrics, and responsive traffic/weather simulation controls.
 
 ## 🛠️ Technology Stack
 
@@ -57,6 +55,11 @@ EV_Charging_Intelligence/
 ├── requirements.txt        # Project dependencies
 └── README.md               # Project documentation
 ```
+
+## 🌐 Deployment & Media
+
+- **Live Demo (Streamlit Cloud):** [Insert Deployed URL Here]
+- **Project Walkthrough Video:** [Insert Video Link Here]
 
 ## ⚙️ Installation & Setup
 
@@ -117,4 +120,13 @@ _For a detailed analysis, see [Model Evaluation Report](report/model_evaluation_
 
 ---
 
-**Team Members:** Sachin Jaiswal, Ayush Tiwari, Sibtain Ahmed Qureshi, Md. Sajjan
+## 👥 Team & Technical Integrity
+
+- **Batch:** Section - C
+- **Team Members:**
+  - Sachin Jaiswal: Model Training
+  - Ayush Tiwari: Data Cleaning & Presentation
+  - Sibtain Ahmed Qureshi: Report Making & Data Cleaning
+  - Md. Sajjan: Frontend UI Development
+
+**"No GenAI" Affirmation:** We formally affirm that the core logic, data pipelines, and model architecture of this project are our own original work and not a direct output of Generative AI.

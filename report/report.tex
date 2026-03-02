@@ -8,7 +8,7 @@
 \geometry{a4paper, margin=1in}
 
 \title{Intelligent EV Charging Demand Prediction \\ \large Milestone 1: Model Evaluation \& System Architecture}
-\author{Project 15}
+\author{Project 15 \\ \textbf{Batch: Section - C}}
 \date{February 16, 2026}
 
 \begin{document}
@@ -17,6 +17,9 @@
 
 \section{Executive Summary}
 This report analyzes the performance of the Machine Learning model developed to predict EV charging station utilization rates. The model uses historical usage data along with temporal, environmental, and traffic features to forecast demand.
+
+\section{Problem Statement}
+The rapid adoption of electric vehicles (EVs) has created significant challenges for power grid management and infrastructure planning. Charging stations often experience unpredictable surges in demand, leading to grid instability or long wait times for users. There is a critical need for an intelligent system that can accurately forecast charging station utilization based on multi-modal data (temporal, weather, and traffic) to optimize resource allocation and enhance user experience.
 
 \textbf{Key Results:}
 \begin{itemize}
@@ -102,6 +105,36 @@ The model demonstrates strong capability in conducting accurate demand forecasti
     \end{itemize}
 \end{itemize}
 
+\section{Data Description \& EDA Process}
+\subsection{Data Sources \& Features}
+The dataset is derived from historical EV charging session logs, capturing diverse operational environments across multiple urban centers. It includes over 5,000 sessions with granular data point frequency. Key features include:
+\begin{itemize}
+    \item \textbf{Temporal:} Timestamp (converted to seasonal context), Hour of Day, Day of Week, Is Weekend, Is Peak Hour.
+    \item \textbf{Environmental \& Contextual:} Real-time temperature, precipitation levels, Traffic Congestion Index (scaled 1-3), historical gas prices, and boolean flags for local community events.
+    \item \textbf{Station-Specific:} Location Type (Public/Residential/Commercial), Charger Type (Level 1/2/DC Fast), and City context.
+\end{itemize}
+The target variable is the \textbf{Utilization Rate (\%)}, representing the ratio of active charging sessions to total available port capacity at a given timestamp.
+
+\subsection{Exploratory Data Analysis (EDA) Insights}
+During the EDA phase, several critical correlational thresholds were established:
+\begin{itemize}
+    \item \textbf{Temporal Surges:} Utilization spikes sharply during established peak hours (7-10 AM and 4-7 PM), confirming commuter charging dominance.
+    \item \textbf{Traffic Correlation:} A strong positive correlation exists between the Traffic Congestion Index and charging demand at urban stations.
+    \item \textbf{Weather Impact:} Extreme weather conditions marginally increase utilization variance, likely due to battery efficiency drops forcing unexpected charging stops.
+\end{itemize}
+
+\section{Methodology \& Optimization}
+\subsection{Design Justification}
+A \textbf{Random Forest Regressor} was selected over simpler linear models due to its ability to capture non-linear interactions (e.g., the combined effect of high traffic \textit{and} bad weather). It was also chosen over Deep Learning approaches to align with Milestone 1 constraints prioritizing classical Machine Learning and interpretability.
+
+\subsection{Optimization Steps}
+To improve model performance, the following optimization steps were taken:
+\begin{enumerate}
+    \item \textbf{Feature Engineering:} Redundant features (like engineered `is_rush_hour` when `is_peak_hour` existed) were stripped to reduce dimensionality.
+    \item \textbf{Pipeline Architecture:} Constructed a scikit-learn \texttt{ColumnTransformer} pipeline. This ensures \texttt{StandardScaler} is isolated to numeric features and \texttt{OneHotEncoder} to categorical features, preventing data leakage during inference.
+    \item \textbf{Hyperparameter Tuning:} Tree depth was restricted (\texttt{max\_depth=10}) and estimator count controlled (\texttt{n\_estimators=50}) to prevent overfitting and ensure the model artifact remained lightweight ($<3$MB) for agile deployment.
+\end{enumerate}
+
 \section{Detailed Performance Metrics}
 
 \begin{table}[h]
@@ -119,7 +152,15 @@ The model demonstrates strong capability in conducting accurate demand forecasti
     \label{tab:metrics}
 \end{table}
 
+\section{Team Contribution}
+\begin{itemize}
+    \item \textbf{Sachin Jaiswal:} Core Machine Learning model development, pipeline architecture, and training.
+    \item \textbf{Ayush Tiwari:} Data cleaning infrastructure, preprocessing logic, and presentation design.
+    \item \textbf{Sibtain Ahmed Qureshi:} Technical report drafting, LaTeX documentation, and data quality assurance.
+    \item \textbf{Md. Sajjan:} Frontend UI development, Streamlit dashboard implementation, and custom styling.
+\end{itemize}
+
 \section{Conclusion}
-The Random Forest model satisfies the technical requirements for Milestone 1, achieving high accuracy without reliance on deep learning or agentic methods. It is robust enough for deployment in the interactive Streamlit dashboard.
+The Random Forest model satisfies the technical requirements for Milestone 1, achieving high accuracy via classical optimization techniques. It operates effectively within an interactive Streamlit framework, establishing a solid baseline before advancing to Agentic AI infrastructure planning.
 
 \end{document}
