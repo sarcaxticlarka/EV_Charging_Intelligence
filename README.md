@@ -23,10 +23,50 @@ This project builds an **AI-driven analytics and planning system** for electric 
 
 ## 🧠 LangGraph Architecture
 
-The agentic workflow is built as a **compiled LangGraph state machine** with four sequential nodes:
+The agentic workflow is built as a **compiled LangGraph state machine** using a multi-node architecture that mimics human trip-planning logic:
 
-```
-[User Query] → 🧠 Reasoner → 🤖 ML Tool → 🌐 API Tool → 📝 Synthesizer → [Trip Plan]
+```mermaid
+graph TD
+    subgraph Data_Engineering [1. Data Engineering]
+        A[Raw Dataset] --> B[ETL: Cleaning & Process]
+        B --> C[Feature Engineering]
+        C --> D[(Processed Data)]
+    end
+
+    subgraph ML_Inference_Engine [2. ML Engine]
+        D --> E[Model Training]
+        E --> F[Validation & Hyperparams]
+        F --> G[("Saved Pipeline (demand_predictor.pkl)")]
+    end
+
+    subgraph Agentic_Orchestration [3. Agentic Orchestration - LangGraph]
+        Query([User Query]) --> Reasoner{🧠 Reasoner\nGroq Llama 3.3}
+        
+        Reasoner --> ML_Tool[🤖 ML Tool\nPredict Utilization]
+        Reasoner --> API_Tool[🌐 API Tool\nLive Context]
+        
+        ML_Tool --> Synth[📝 Synthesizer\nGroq Llama 3.3]
+        API_Tool --> Synth
+        
+        G -. Load Model .-> ML_Tool
+    end
+
+    subgraph Interface [4. Interface]
+        Synth --> UI[Streamlit UI]
+        UI --> Map[Interactive Map]
+        UI --> Detail[Trip Itinerary]
+    end
+
+    %% Styling
+    style Data_Engineering fill:#f8f9fa,stroke:#dee2e6,stroke-width:2px
+    style ML_Inference_Engine fill:#e7f5ff,stroke:#a5d8ff,stroke-width:2px
+    style Agentic_Orchestration fill:#f3f0ff,stroke:#d0bfff,stroke-width:2px
+    style Interface fill:#f4fce3,stroke:#c0eb75,stroke-width:2px
+    
+    style Reasoner fill:#d0bfff,stroke:#7950f2,stroke-width:2px
+    style ML_Tool fill:#a5d8ff,stroke:#228be6,stroke-width:2px
+    style API_Tool fill:#ffec99,stroke:#fab005,stroke-width:2px
+    style Query fill:#40c057,stroke:#2b8a3e,stroke-width:2px,color:#fff
 ```
 
 | Node | Role | Technology |
@@ -86,6 +126,10 @@ EV_Charging_Intelligence/
 └── README.md                     # This file
 ```
 
+### 5. AI Reasoning & Groq Integration
+
+The pipeline leverages **Groq (Llama 3.3 70B)** due to its ultra-low latency, making real-time interactive multi-step reasoning feasible. It provides structed extraction in the "Reasoner" node and conversational synthesis in the final step.
+
 ## ⚙️ Installation & Setup
 
 ### 1. Clone the repository
@@ -114,10 +158,18 @@ cp .env.example .env
 
 Or enter the key directly in the Streamlit sidebar when using the AI Trip Planner.
 
-### 5. Train the ML model (if not already trained)
-```bash
-python src/model_trainer.py
-```
+### 5. Train the ML model
+
+**Git LFS & Model Size Note:** The high-fidelity model (1.47 GB) is too large for standard GitHub hosting. By default, a **Lite Model** (`< 100MB`) is included in the repository for immediate testing. 
+
+- To re-train the **Lite Model** (quick, low memory):
+  ```bash
+  python src/model_trainer_lite.py
+  ```
+- To train the **Full High-Fidelity Model** (requires more memory and time):
+  ```bash
+  python src/model_trainer.py
+  ```
 
 ### 6. Run the application
 ```bash

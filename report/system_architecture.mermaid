@@ -1,26 +1,41 @@
 graph TD
-    subgraph Data Processing
-        A[Raw Ingestion] -- Load CSV --> B[Data Cleaning]
-        B -- Filter/Drop Duplicates --> C[Feature Engineering]
-        C -- OneHot/Scaling --> D[(Processed Data)]
+    subgraph Data_Engineering [1. Data Engineering]
+        A[Raw Dataset] --> B[ETL: Cleaning & Process]
+        B --> C[Feature Engineering]
+        C --> D[(Processed Data)]
     end
 
-    subgraph Model Training
-        D --> E[Split Train/Test]
-        E --> F[Random Forest Regressor]
-        F -- Hyperparameter Tuning --> G[Final Model]
-        G -- "Validate (R2, RMSE)" --> H[("Saved .pkl")]
+    subgraph ML_Inference_Engine [2. ML Engine]
+        D --> E[Model Training]
+        E --> F[Validation & Hyperparams]
+        F --> G[("Saved Pipeline (demand_predictor.pkl)")]
     end
 
-    subgraph Application
-        I[Streamlit UI] -- Adjust Parameters --> J[Input Processing]
-        J --> K[Inference Engine]
-        K --> L[Prediction Output]
-        L --> M[Visualization & Insights]
+    subgraph Agentic_Orchestration [3. Agentic Orchestration - LangGraph]
+        Query([User Query]) --> Reasoner{🧠 Reasoner\nGroq Llama 3.3}
+        
+        Reasoner --> ML_Tool[🤖 ML Tool\nPredict Utilization]
+        Reasoner --> API_Tool[🌐 API Tool\nLive Context]
+        
+        ML_Tool --> Synth[📝 Synthesizer\nGroq Llama 3.3]
+        API_Tool --> Synth
+        
+        G -. Load Model .-> ML_Tool
     end
 
-    H -. "Load .pkl" .-> K
+    subgraph Interface [4. Interface]
+        Synth --> UI[Streamlit UI]
+        UI --> Map[Interactive Map]
+        UI --> Detail[Trip Itinerary]
+    end
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style F fill:#bbf,stroke:#333,stroke-width:2px
-    style I fill:#bfb,stroke:#333,stroke-width:2px
+    %% Styling
+    style Data_Engineering fill:#f8f9fa,stroke:#dee2e6,stroke-width:2px
+    style ML_Inference_Engine fill:#e7f5ff,stroke:#a5d8ff,stroke-width:2px
+    style Agentic_Orchestration fill:#f3f0ff,stroke:#d0bfff,stroke-width:2px
+    style Interface fill:#f4fce3,stroke:#c0eb75,stroke-width:2px
+    
+    style Reasoner fill:#d0bfff,stroke:#7950f2,stroke-width:2px
+    style ML_Tool fill:#a5d8ff,stroke:#228be6,stroke-width:2px
+    style API_Tool fill:#ffec99,stroke:#fab005,stroke-width:2px
+    style Query fill:#40c057,stroke:#2b8a3e,stroke-width:2px,color:#fff

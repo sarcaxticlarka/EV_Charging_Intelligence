@@ -65,36 +65,46 @@ Our architecture follows a sequential dag (Directed Acyclic Graph) of agentic no
 \begin{figure}[h]
     \centering
     \begin{tikzpicture}[
-        node distance=1.5cm,
+        node distance=1.2cm and 1.5cm,
         auto,
-        block/.style={rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em},
-        llm/.style={rectangle, draw, fill=purple!10, text width=6em, text centered, rounded corners, minimum height=3em},
-        tool/.style={rectangle, draw, fill=orange!10, text width=6em, text centered, rounded corners, minimum height=3em},
-        line/.style={draw, -Latex, thick},
+        block/.style={rectangle, draw, fill=blue!8, text width=6em, text centered, rounded corners, minimum height=3.5em, font=\small},
+        data/.style={cylinder, draw, shape border rotate=90, fill=gray!10, text width=4em, text centered, minimum height=3em, font=\small},
+        llm/.style={rectangle, draw, fill=purple!10, text width=7em, text centered, rounded corners, minimum height=3.5em, font=\small\bfseries},
+        tool/.style={rectangle, draw, fill=orange!10, text width=7em, text centered, rounded corners, minimum height=3.5em, font=\small},
+        line/.style={draw, -Latex, thick, color=gray!80},
+        container/.style={draw, dashed, inner sep=0.4cm, rounded corners, fill=gray!2}
     ]
-        % Nodes
+        % Horizontal Layout for Agentic Core
         \node [llm] (query) {User Query};
-        \node [llm, right=of query] (reasoner) {🧠 Reasoner \\ (Groq)};
-        \node [tool, right=of reasoner] (ml) {🤖 ML Tool \\ (RF Model)};
-        \node [tool, right=of ml] (api) {🌐 API Tool \\ (Live Context)};
-        \node [llm, right=of api] (synth) {📝 Synthesizer \\ (Groq)};
-        \node [block, below=1.5cm of synth] (itinerary) {🗺️ Final Plan};
+        \node [llm, right=of query] (reasoner) {🧠 Reasoner \\ (Groq - Llama)};
+        
+        % Parallel Tools
+        \node [tool, right=of reasoner, yshift=0.8cm] (ml) {🤖 ML Tool \\ (RF Predictor)};
+        \node [tool, right=of reasoner, yshift=-0.8cm] (api) {🌐 API Tool \\ (Live Data)};
+        
+        \node [llm, right=of ml, yshift=-0.8cm] (synth) {📝 Synthesizer \\ (Groq)};
+        \node [block, right=of synth, fill=green!10] (itinerary) {🗺️ Interactive \\ Trip Plan};
+
+        % External Assets
+        \node [data, above=of ml] (pkl) {.pkl Model};
 
         % Path
         \path [line] (query) -- (reasoner);
-        \path [line] (reasoner) -- (ml);
-        \path [line] (ml) -- (api);
-        \path [line] (api) -- (synth);
+        \path [line] (reasoner.east) -- ++(0.4,0) |- (ml.west);
+        \path [line] (reasoner.east) -- ++(0.4,0) |- (api.west);
+        \path [line] (ml.east) -- ++(0.4,0) -| (synth.north);
+        \path [line] (api.east) -- ++(0.4,0) -| (synth.south);
         \path [line] (synth) -- (itinerary);
+        \path [line, dashed] (pkl) -- (ml);
 
         % State container
         \begin{scope}[on background layer]
-            \node [draw, dashed, inner sep=0.5cm, rounded corners, fill=gray!5, fit=(reasoner) (api) (synth)] (state) {};
-            \node [below=0.1cm of state] {Compiled LangGraph State Machine};
+            \node [container, fit=(reasoner) (ml) (api) (synth)] (state) {};
+            \node [below=0.1cm of state, font=\footnotesize\itshape, color=gray] {Compiled LangGraph State Machine (Milestone 2)};
         \end{scope}
 
     \end{tikzpicture}
-    \caption{Agentic AI Workflow Diagram}
+    \caption{Full Lifecycle Agentic System Architecture}
     \label{fig:agent_arch}
 \end{figure}
 
