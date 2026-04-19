@@ -1,0 +1,126 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usetikzlibrary{shapes, arrows.meta, positioning, backgrounds, fit}
+
+\geometry{a4paper, margin=1in}
+
+\title{Intelligent EV Charging Demand Prediction \& Agentic Trip Planner \\ \large End-Semester Project Report: Milestone 2 (Agentic AI Integration)}
+\author{Project 15 \\ \textbf{Batch: Section - C}}
+\date{April 18, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report details the final implementation of an intelligent EV charging station management system. While the first phase focused on building a high-fidelity predictive Machine Learning model, the final phase introduces an **Agentic AI architecture** using **LangGraph**. This system orchestrates a 4-node state machine that parses natural language trip queries, invokes the trained ML model as a tool, incorporates live contextual APIs (Traffic, Weather, Pricing), and synthesizes personalized trip itineraries. The resulting system demonstrates the transition from a passive analytical dashboard to an active, agentic decision-support system.
+\end{abstract}
+
+\section{Introduction}
+As the global transition to Electric Vehicles (EVs) accelerates, the primary hurdle shifts from battery range to infrastructure accessibility. Our project addresses this by moving beyond simple "wait time" dashboards. We have implemented an **Agentic Trip Planner** that allows users to communicate with the infrastructure in natural language. By integrating **Large Language Models (LLMs)** with **Classical ML**, we provide a holistic planning experience that accounts for both historical demand patterns and real-time environmental context.
+
+\section{Phase 1: Predictive ML Engine Recap}
+The baseline of the system is a **Random Forest Regressor** responsible for predicting station utilization. In this milestone, we retrained the model to ensure compatibility with the updated environment and optimized hyperparameters.
+
+\begin{itemize}
+    \item \textbf{Algorithm:} Random Forest Regressor ($n=50$).
+    \item \textbf{Feature Engineering:} Temporal (hour, day, peak flags), Environmental (temp, precip), and Contextual (traffic index, city context).
+    \item \textbf{Performance Results:}
+\end{itemize}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{@{}llp{8cm}@{}}
+        \toprule
+        \textbf{Metric} & \textbf{Value} & \textbf{Interpretation} \\
+        \midrule
+        R-Squared ($R^2$) & 0.9430 & Extremely high fit, explaining over 94\% of utilization variance. \\
+        RMSE & 0.0715 & Predictions are accurate within a $\sim 7.1\%$ error margin. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Phase 2 ML Model Performance Metrics}
+    \label{tab:metrics}
+\end{table}
+
+\section{Phase 2: Agentic AI Orchestration (LangGraph)}
+The core advancement of the project is the deployment of an **Agentic Workflow** using **LangGraph**. Unlike traditional linear chains, LangGraph allows for a structured state machine where data flows between specialized nodes.
+
+\subsection{The 4-Node Pipeline}
+Our architecture follows a sequential dag (Directed Acyclic Graph) of agentic nodes:
+
+\begin{enumerate}
+    \item \textbf{Reasoner Node (LLM):} Uses **Groq (Llama 3.3 70B)** to extract structured parameters from an unstructured user query (e.g., mapping "New York" to city ID and "Friday evening" to timestamp).
+    \item \textbf{ML Tool Node (Deterministic):} Injects the parsed parameters into the saved \texttt{demand\_predictor.pkl} artifact to generate a utilization forecast.
+    \item \textbf{API Tool Node (Simulated Retrieval):} Fetches live context data, including rush-hour traffic delays, extreme weather advisories, and time-of-day electricity rates. This acts as a Retrieval-Augmented Generation (RAG) hook for real-time information.
+    \item \textbf{Synthesizer Node (LLM):} Gathers all inputs and ML predictions to format a conversational, actionable markdown itinerary for the user.
+\end{enumerate}
+
+\section{System Architecture}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.5cm,
+        auto,
+        block/.style={rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em},
+        llm/.style={rectangle, draw, fill=purple!10, text width=6em, text centered, rounded corners, minimum height=3em},
+        tool/.style={rectangle, draw, fill=orange!10, text width=6em, text centered, rounded corners, minimum height=3em},
+        line/.style={draw, -Latex, thick},
+    ]
+        % Nodes
+        \node [llm] (query) {User Query};
+        \node [llm, right=of query] (reasoner) {🧠 Reasoner \\ (Groq)};
+        \node [tool, right=of reasoner] (ml) {🤖 ML Tool \\ (RF Model)};
+        \node [tool, right=of ml] (api) {🌐 API Tool \\ (Live Context)};
+        \node [llm, right=of api] (synth) {📝 Synthesizer \\ (Groq)};
+        \node [block, below=1.5cm of synth] (itinerary) {🗺️ Final Plan};
+
+        % Path
+        \path [line] (query) -- (reasoner);
+        \path [line] (reasoner) -- (ml);
+        \path [line] (ml) -- (api);
+        \path [line] (api) -- (synth);
+        \path [line] (synth) -- (itinerary);
+
+        % State container
+        \begin{scope}[on background layer]
+            \node [draw, dashed, inner sep=0.5cm, rounded corners, fill=gray!5, fit=(reasoner) (api) (synth)] (state) {};
+            \node [below=0.1cm of state] {Compiled LangGraph State Machine};
+        \end{scope}
+
+    \end{tikzpicture}
+    \caption{Agentic AI Workflow Diagram}
+    \label{fig:agent_arch}
+\end{figure}
+
+\section{Qualitative Analysis \& Case Study}
+To evaluate the agent's effectiveness, we performed a case study on a complex user request.
+
+\textbf{Prompt:} \textit{"I'm driving to New York this Friday at 5 PM. I have a Level 2 charger. Where and when should I charge to avoid traffic and high fees?"}
+
+\subsection{Agent Reasoning Trace}
+Internal logs show the following state transfer:
+\begin{itemize}
+    \item \textbf{Reasoner:} Successfully mapped "Friday 5 PM" to \texttt{hour\_of\_day: 17} and \texttt{is\_peak\_hour: True}.
+    \item \textbf{ML Tool:} Predicted a utilization rate of **82.4\%** (High Demand) for the Given NYC station during rush hour.
+    \item \textbf{API Tool:} Identified peak-tier pricing (\$0.38/kWh) and a 35-minute traffic delay.
+    \item \textbf{Synthesizer:} Advised the user to delay departure by 2 hours or use a "Workplace" location to save 40\% on charging fees.
+\end{itemize}
+
+\section{Conclusion}
+The integration of Agentic AI has transformed the EV Charging intelligence platform from a predictive dashboard into a proactive planning partner. By orchestrating LLM reasoning with deterministic ML models via LangGraph, we have achieved a system that is both accurate and user-centric, fulfilling all criteria for the end-semester evaluation.
+
+\section{Team Contribution}
+\begin{itemize}
+    \item \textbf{Sachin Jaiswal:} ML Model training and LangGraph Agent Architecture implementation.
+    \item \textbf{Ayush Tiwari:} Data cleaning, API logic simulation, and UI refinement.
+    \item \textbf{Sibtain Ahmed Qureshi:} Technical Documentation, LaTeX Report drafting, and RAG strategy.
+    \item \textbf{Md. Sajjan:} Streamlit AI Planner Interface and Chat UI development.
+\end{itemize}
+
+\end{document}
